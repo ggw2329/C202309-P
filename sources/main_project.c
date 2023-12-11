@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #define MONTH 1
 #define WEEK 7
 #define DAY 1
