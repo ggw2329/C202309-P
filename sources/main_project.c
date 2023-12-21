@@ -1,82 +1,112 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#define MONTH 1
-#define WEEK 7
-#define DAY 1
 
-// 배열들 구조체로 변경
-// (배열들 동적메모리 변경->define 삭제)
 // 함수들 헤더파일로 변경
-int Trade;
 int AssetValue;
-char CoinType[MONTH][10];//종류입력
-char CoinBuySell[MONTH][10];//long,short입력
-int Coinvalue[MONTH];//구매량 입력
-double StartPrice[MONTH];//시작가 입력
-double EndPrice[MONTH];//종료가 입력
-int Magnification[MONTH];//배율 입력
+
+struct TradeInfo {
+	int Coinvalue;//구매량
+	int Magnification;//거래당시 배율
+	double StartPrice;//시작가
+	double EndPrice;//종료가
+	char* CoinType;//coin종류
+	char* CoinBuySell;//long,short입력
+};
+
+void initializeTradeInfo(struct TradeInfo* trade) {
+	printf("거래시 coin종류를 입력하세요(BTC,ETH,XRP(앞 대문자만 입력)): ");
+	char temp[100];
+	scanf_s("%s", temp, (int)sizeof(temp));
+	trade->CoinType = (char*)malloc((strlen(temp) + 1) * sizeof(char));
+	strcpy_s(trade->CoinType, strlen(temp) + 1, temp);
+
+	printf("거래시 Long/Short정보를 입력하세요(앞 대문자만 입력): ");
+	scanf_s("%s", temp, (int)sizeof(temp));
+	trade->CoinBuySell = (char*)malloc((strlen(temp) + 1) * sizeof(char));
+	strcpy_s(trade->CoinBuySell, strlen(temp) + 1, temp);
+
+	printf("거래시 구매량(KRW)을 입력하세요: ");
+	scanf_s("%d", &trade->Coinvalue);
+
+	printf("해당거래에 사용한 배율을 입력하세요: ");
+	scanf_s("%d", &trade->Magnification);
+
+	printf("해당거래의 시작가와 종료가를 입력하세요: ");
+	scanf_s("%lf %lf", &trade->StartPrice, &trade->EndPrice);
+}
 
 //롱숏 조건 추가
-void CoinProfit(double* value1,double* value2,int i,int*Mag) {
+void CoinProfit(struct TradeInfo* trade) {
 	double profit;
-	if (*value1 <= *value2) {
-		profit = *Mag * ((1-(double)value1[i-1] / (double)value2[i-1])*100);
-		printf("%d번째 거래의 수익률은 %.2lf%c입니다.", i, profit,'%');
+	if (trade->StartPrice <= trade->EndPrice) {
+		profit = trade->Magnification * ((1-(double)trade->StartPrice / (double)trade->EndPrice)*100);
+		printf("해당 거래의 수익률은 %.2lf%c입니다.", profit,'%');
 	}
-	else if (*value1 > *value2) {
-		profit = *Mag * (((double)value1[i-1] / (double)value2[i-1]-1) * 100);
-		printf("%d번째 거래의 수익률은 %c %.2lf%c입니다.", i,'-', profit,'%');
+	else if (trade->StartPrice > trade->EndPrice) {
+		profit = trade->Magnification * (((double)trade->StartPrice / (double)trade->EndPrice -1) * 100);
+		printf("해당 거래의 수익률은 %c %.2lf%c입니다.",'-', profit,'%');
 	}
 }
 
-void CoinTypeCount(char*CoinType){
+void CoinTypeCount(struct TradeInfo* trade, int numTrades){
 	int a = 0;
 	int b = 0;
 	int c = 0;
-	for (int i=0; i < MONTH; i++) {
-		if (CoinType[i] == 'B') {
+	for (int i=0; i < numTrades; i++) {
+		if (trade->CoinType == 'B') {
 			a+=1;
 		}
-		else if (CoinType[i] == 'E') {
+		else if (trade->CoinType == 'E') {
 			b+=1;
 		}
-		else if (CoinType[i] == 'X') {
+		else if (trade->CoinType == 'X') {
 			c+=1;
 		}
 	}printf("BTC:%d번 거래, ETH:%d번 거래, XRP:%d번 거래", a, b, c);
 }
 
 //롱숏 조건 추가
-void WinRate(double*SP,double*EP){
+void WinRate(struct TradeInfo* trade, int numTrades){
 	int a=0;
-	for (int i = 0; i < MONTH; i++) {
-		if (SP[i] < EP[i]) {
+	for (int i = 0; i < numTrades; i++) {
+		if (trade->StartPrice < trade->EndPrice) {
 			a++;
 		}
 	}
-	printf("고객님의 총거래 승률은 %d%c입니다", a / MONTH * 100, '%');
+	printf("고객님의 총거래 승률은 %d%c입니다", a / numTrades * 100, '%');
 }
 //void RecentPnl
 //void TotalPnl
+//void NowAssetValue
 
 
 int main() {
 
-
-
 	printf("계좌의 초기금액을 입력하세요(KRW).\n");
 	scanf_s("%d", &AssetValue);
 
-	printf("Position정보를 입력 받습니다.\n");
+	int numTrades;
+	printf("몇새의 정보를 입력하시겠습니까? \n");
+	scanf_s("%d", &numTrades);
 
-	for (int i = 0; i < MONTH; i++) {
+	struct TradeInfo* trades = (struct TradeInfo*)malloc(numTrades * sizeof(struct TradeInfo));
 
-		printf("종료된 %d번째 거래의 정보를 입력하시오.(coin종류(BTC,ETH,XRP),롱/숏(L,S),구매량(KRW))(영문입력시 앞글자만 입력)\n", i + 1);
-		scanf_s("%s %s %d", CoinType[i], (int)sizeof(CoinType),CoinBuySell[i],(int)sizeof(CoinBuySell),&Coinvalue[i]);
-		printf("종료된 %d번째 거래의 정보를 입력하시오.(시작가,종료가,배율)\n", i + 1);
-		scanf_s("%lf %lf %d",&StartPrice[i],&EndPrice[i],&Magnification[i]);
+	if (trades == NULL) {
+		return 1;
 	}
+
+	for (int i = 0; i < numTrades; i++) {
+		printf("\n%d번째 거래의 정보를 입력하세요.\n", i + 1);
+		initializeTradeInfo(&trades[i]);
+	}
+
+	for (int i = 0; i < numTrades; i++) {
+		free(trades[i].CoinType);
+		free(trades[i].CoinBuySell);
+	}
+	free(trades);
+
 	
 	int choice;
 	printf("\n1.해당 거래의 수익률");
@@ -96,14 +126,14 @@ int main() {
 			int i;
 			printf("몇 번째 거래의 수익률을 볼건지 입력하시오.\n");
 			scanf_s("%d", &i);
-			CoinProfit(StartPrice, EndPrice, i,Magnification);
+			CoinProfit((&trades[i - 1]);
 		}
 		else if (choice == 2) {
 			printf("coin종류당 거래횟수는 다음과 같습니다.\n");
-			CoinTypeCount(*CoinType);
+			CoinTypeCount(&trades[i], numTrades);
 		}
 		else if (choice == 3) {
-			WinRate(StartPrice, EndPrice);
+			WinRate(&trades[i], numTrades);
 		}
 		else if (choice == 4) {
 			//int i;
@@ -116,7 +146,7 @@ int main() {
 			//printf("총 pnl은 %.1lf입니다.\n",TotalPnl());
 		}
 		else if (choice == 6) {
-			//assetvalue= 처음value+value*수익률
+			//assetvalue= 초기value+Coinvalue*수익률
 			//printf("현재 assetvalue는 %d입니다.\n",Assetvalue);
 		}
 		else if (choice == 0) {
