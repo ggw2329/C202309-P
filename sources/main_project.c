@@ -44,7 +44,15 @@ void CoinTypeCount(char*CoinType){
 	}printf("BTC:%d번 거래, ETH:%d번 거래, XRP:%d번 거래", a, b, c);
 }
 
-//void WinRate(int*){}
+void WinRate(double*SP,double*EP){
+	int a=0;
+	for (int i = 0; i < MONTH; i++) {
+		if (SP[i] < EP[i]) {
+			a++;
+		}
+	}
+	printf("고객님의 거래 승률은 %d%c입니다", a / MONTH * 100, '%');
+}
 //void RecentPnl
 //void TotalPnl
 
@@ -90,7 +98,7 @@ int main() {
 			CoinTypeCount(*CoinType);
 		}
 		else if (choice == 3) {
-			//printf("내 거래의 성공률은 %.1lf%입니다.\n",WinRate());
+			WinRate(StartPrice, EndPrice);
 		}
 		else if (choice == 4) {
 			//int i;
