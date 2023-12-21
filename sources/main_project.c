@@ -15,13 +15,13 @@ struct TradeInfo {
 };
 
 void initializeTradeInfo(struct TradeInfo* trade) {
-	printf("거래시 coin종류를 입력하세요(BTC,ETH,XRP(앞 대문자만 입력)): ");
+	printf("거래시 coin종류를 입력하세요(BTC,ETH,XRP(대문자로 입력)): ");
 	char temp[100];
 	scanf_s("%s", temp, (int)sizeof(temp));
 	trade->CoinType = (char*)malloc((strlen(temp) + 1) * sizeof(char));
 	strcpy_s(trade->CoinType, strlen(temp) + 1, temp);
 
-	printf("거래시 Long/Short정보를 입력하세요(앞 대문자만 입력): ");
+	printf("거래시 Long/Short정보를 입력하세요(대문자로 입력): ");
 	scanf_s("%s", temp, (int)sizeof(temp));
 	trade->CoinBuySell = (char*)malloc((strlen(temp) + 1) * sizeof(char));
 	strcpy_s(trade->CoinBuySell, strlen(temp) + 1, temp);
@@ -37,15 +37,20 @@ void initializeTradeInfo(struct TradeInfo* trade) {
 }
 
 //롱숏 조건 추가
-void CoinProfit(struct TradeInfo* trade) {
+void CoinProfit(const struct TradeInfo* trade, int i) {
 	double profit;
-	if (trade->StartPrice <= trade->EndPrice) {
-		profit = trade->Magnification * ((1-(double)trade->StartPrice / (double)trade->EndPrice)*100);
-		printf("해당 거래의 수익률은 %.2lf%c입니다.", profit,'%');
+	double a, b;
+	int c;
+	a = trade[i - 1].StartPrice;
+	b = trade[i - 1].EndPrice;
+	c = trade[i - 1].Magnification;
+	if (a <= b) {
+		profit = c * ((1 - (double)a / (double)b) * 100);
+		printf("해당 거래의 수익률은 %.2lf%c입니다.", profit, '%');
 	}
-	else if (trade->StartPrice > trade->EndPrice) {
-		profit = trade->Magnification * (((double)trade->StartPrice / (double)trade->EndPrice -1) * 100);
-		printf("해당 거래의 수익률은 %c %.2lf%c입니다.",'-', profit,'%');
+	else if (a > b) {
+		profit = c * (((double)a / (double)b - 1) * 100);
+		printf("해당 거래의 수익률은 %c%.2lf%c입니다.", '-', profit, '%');
 	}
 }
 
@@ -54,13 +59,13 @@ void CoinTypeCount(struct TradeInfo* trade, int numTrades){
 	int b = 0;
 	int c = 0;
 	for (int i=0; i < numTrades; i++) {
-		if (trade->CoinType == 'B') {
+		if (*trade[i].CoinType == 'B') {
 			a+=1;
 		}
-		else if (trade->CoinType == 'E') {
+		else if (*trade[i].CoinType == 'E') {
 			b+=1;
 		}
-		else if (trade->CoinType == 'X') {
+		else if (*trade[i].CoinType == 'X') {
 			c+=1;
 		}
 	}printf("BTC:%d번 거래, ETH:%d번 거래, XRP:%d번 거래", a, b, c);
@@ -74,7 +79,8 @@ void WinRate(struct TradeInfo* trade, int numTrades){
 			a++;
 		}
 	}
-	printf("고객님의 총거래 승률은 %d%c입니다", a / numTrades * 100, '%');
+	double b = (double)a / num * 100;
+	printf("고객님의 총거래 승률은 %.1lf%c입니다", b, '%');
 }
 //void RecentPnl
 //void TotalPnl
@@ -87,7 +93,7 @@ int main() {
 	scanf_s("%d", &AssetValue);
 
 	int numTrades;
-	printf("몇새의 정보를 입력하시겠습니까? \n");
+	printf("몇 번의 거래를 입력하시겠습니까? \n");
 	scanf_s("%d", &numTrades);
 
 	struct TradeInfo* trades = (struct TradeInfo*)malloc(numTrades * sizeof(struct TradeInfo));
@@ -101,12 +107,6 @@ int main() {
 		initializeTradeInfo(&trades[i]);
 	}
 
-	for (int i = 0; i < numTrades; i++) {
-		free(trades[i].CoinType);
-		free(trades[i].CoinBuySell);
-	}
-	free(trades);
-
 	
 	int choice;
 	printf("\n1.해당 거래의 수익률");
@@ -119,21 +119,21 @@ int main() {
 
 
 	for (int i = 0; i < 100; i++) {
-		printf("\n이용할 옵션을 선택하세요.(0~5)");
+		printf("\n이용할 옵션을 선택하세요.(0~6): ");
 		scanf_s("%d", &choice);
 		printf("%d번째 옵션을 선택하셨습니다.\n", choice);
 		if (choice == 1) {
 			int i;
 			printf("몇 번째 거래의 수익률을 볼건지 입력하시오.\n");
 			scanf_s("%d", &i);
-			CoinProfit((&trades[i - 1]);
+			CoinProfit(trades,i);
 		}
 		else if (choice == 2) {
 			printf("coin종류당 거래횟수는 다음과 같습니다.\n");
-			CoinTypeCount(&trades[i], numTrades);
+			CoinTypeCount(trades, numTrades);
 		}
 		else if (choice == 3) {
-			WinRate(&trades[i], numTrades);
+			WinRate(trades, numTrades);
 		}
 		else if (choice == 4) {
 			//int i;
@@ -154,8 +154,13 @@ int main() {
 			break;
 		}
 		else {
-			printf("숫자를 잘못 입력하셨습니다(0~5).\n");
+			printf("숫자를 잘못 입력하셨습니다(0~6).\n");
 		}
 	}
+	for (int i = 0; i < numTrades; i++) {
+		free(trades[i].CoinType);
+		free(trades[i].CoinBuySell);
+	}
+	free(trades);
 	return 0;
 }
