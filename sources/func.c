@@ -19,7 +19,7 @@ void initializeTradeInfo(struct TradeInfo* trade) {
 	printf("거래시 구매량(KRW)을 입력하세요: ");
 	scanf_s("%d", &trade->Coinvalue);
 
-	printf("해당거래에 사용한 배율을 입력하세요: ");
+	printf("해당거래에 사용한 배율을 입력하세요(1~100): ");
 	scanf_s("%d", &trade->Magnification);
 
 	printf("해당거래의 시작가와 종료가를 입력하세요: ");
